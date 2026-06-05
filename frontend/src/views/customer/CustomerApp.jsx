@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Explore from './Explore';
 import RoomDetail from './RoomDetail';
 import BookingScreen from './BookingScreen';
@@ -11,7 +10,6 @@ import BrandMark from '../../components/BrandMark';
 import { TI } from '../../theme';
 
 const NAV_ITEMS = [
-  { id: 'home', icon: 'home', label: 'Home' },
   { id: 'explore', icon: 'bed', label: 'Rooms' },
   { id: 'trips', icon: 'cal', label: 'Bookings' },
   { id: 'profile', icon: 'user', label: 'Profile' },
@@ -30,7 +28,7 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect, onHome }) {
+function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect }) {
   return (
     <aside style={{
       width: compact ? 88 : 248,
@@ -66,10 +64,10 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect, 
 
       <nav aria-label="Customer navigation" style={{ display: 'flex', flexDirection: 'column', gap: compact ? 8 : 4 }}>
         {NAV_ITEMS.map(item => {
-          const active = item.id !== 'home' && item.id === activeTab && !hasDetailView;
+          const active = item.id === activeTab && !hasDetailView;
           return (
             <button key={item.id} type="button" title={compact ? item.label : undefined}
-              onClick={() => item.id === 'home' ? onHome() : onSelect(item.id)}
+              onClick={() => onSelect(item.id)}
               style={{
                 minHeight: compact ? 58 : 42,
                 border: 'none',
@@ -104,14 +102,11 @@ export default function CustomerApp() {
   const [tab, setTab] = useState('explore');
   const [view, setView] = useState(null);
   const isDesktop = useIsDesktop();
-  const navigate = useNavigate();
 
   const openTab = (nextTab) => {
     setView(null);
     setTab(nextTab);
   };
-
-  const goHome = () => navigate('/');
 
   let screen;
   if (view?.type === 'room') {
@@ -136,7 +131,7 @@ export default function CustomerApp() {
     const title = view ? 'Reservation' : NAV_ITEMS.find(item => item.id === tab)?.label;
     return (
       <div style={{ minHeight: '100vh', display: 'flex', background: '#eef1f6', fontFamily: TI.ui }}>
-        <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} onSelect={openTab} onHome={goHome} />
+        <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} onSelect={openTab} />
         <main style={{ flex: 1, minWidth: 0, height: '100vh', overflow: 'auto' }}>
           <header style={{ height: 64, background: '#fff', borderBottom: `1px solid ${TI.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 30px' }}>
@@ -154,7 +149,7 @@ export default function CustomerApp() {
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', background: '#f2f3f7', fontFamily: TI.ui, color: TI.ink }}>
-      <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} compact onSelect={openTab} onHome={goHome} />
+      <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} compact onSelect={openTab} />
       <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
         style={{ flex: 1, minWidth: 0, marginLeft: 88, minHeight: '100dvh', background: '#f2f3f7' }}>
         {screen}
