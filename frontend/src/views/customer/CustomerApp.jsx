@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ];
 
 const SIDEBAR_WIDE = 248;
-const SIDEBAR_COMPACT = 88;
+const SIDEBAR_COMPACT = 72;
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 769px)').matches);
@@ -33,6 +33,28 @@ function useIsDesktop() {
 
 function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = false, onSelect, onToggle }) {
   const width = compact ? SIDEBAR_COMPACT : SIDEBAR_WIDE;
+  const toggleLabel = compact ? 'Expand sidebar' : 'Collapse sidebar';
+
+  const toggleButton = (
+    <button type="button" onClick={onToggle} title={toggleLabel}
+      aria-label={toggleLabel}
+      style={{
+        width: compact ? 42 : 38,
+        height: compact ? 42 : 38,
+        border: `1px solid ${TI.border}`,
+        borderRadius: 12,
+        background: TI.surfaceAlt,
+        color: TI.ink2,
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+      <Ico name="menu" size={21} sw={2.2} />
+    </button>
+  );
+
   return (
     <aside style={{
       width,
@@ -43,7 +65,7 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = fa
       padding: compact ? '16px 10px' : '22px 16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: compact ? 18 : 22,
+      gap: compact ? 14 : 22,
       position: fixed ? 'fixed' : 'sticky',
       left: 0,
       top: 0,
@@ -54,18 +76,50 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = fa
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: compact ? 'center' : 'flex-start',
+        justifyContent: compact ? 'center' : 'space-between',
         gap: 11,
         padding: compact ? 0 : '0 6px',
+        flexDirection: compact ? 'column' : 'row',
       }}>
-        <BrandMark size={compact ? 42 : 46} radius={13} iconSize={compact ? 22 : 24} />
-        {!compact && (
-          <div style={{ lineHeight: 1.12 }}>
-            <div style={{ fontSize: 15.5, fontWeight: 800, color: TI.ink }}>Traveller's Inn</div>
-            <div style={{ fontSize: 10, color: TI.sub, fontFamily: TI.mono, letterSpacing: 1.4, textTransform: 'uppercase' }}>Guest</div>
-          </div>
-        )}
+        {compact && toggleButton}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: compact ? 'center' : 'flex-start',
+          gap: 11,
+          minWidth: 0,
+        }}>
+          <BrandMark size={compact ? 38 : 46} radius={13} iconSize={compact ? 20 : 24} />
+          {!compact && (
+            <div style={{ lineHeight: 1.12, minWidth: 0 }}>
+              <div style={{ fontSize: 15.5, fontWeight: 800, color: TI.ink, whiteSpace: 'nowrap' }}>Traveller's Inn</div>
+              <div style={{ fontSize: 10, color: TI.sub, fontFamily: TI.mono, letterSpacing: 1.4, textTransform: 'uppercase' }}>Guest</div>
+            </div>
+          )}
+        </div>
+        {!compact && toggleButton}
       </div>
+
+      {compact && (
+        <div style={{
+          width: 34,
+          height: 1,
+          background: TI.border,
+          alignSelf: 'center',
+        }} />
+      )}
+
+      {!compact && (
+        <div style={{
+          borderTop: `1px solid ${TI.border}`,
+          paddingTop: 14,
+          marginTop: -6,
+        }}>
+          <div style={{ fontSize: 11, color: TI.sub, fontWeight: 800, textTransform: 'uppercase', letterSpacing: .7 }}>
+            Menu
+          </div>
+        </div>
+      )}
 
       <nav aria-label="Customer navigation" style={{ display: 'flex', flexDirection: 'column', gap: compact ? 8 : 4 }}>
         {NAV_ITEMS.map(item => {
@@ -92,24 +146,15 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = fa
                 lineHeight: 1.1,
               }}>
               <Ico name={item.icon} size={compact ? 20 : 17} sw={active ? 2.2 : 1.8} />
-              <span style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {item.label}
-              </span>
+              {!compact && (
+                <span style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {item.label}
+                </span>
+              )}
             </button>
           );
         })}
       </nav>
-
-      <button type="button" onClick={onToggle} title={compact ? 'Expand sidebar' : 'Collapse sidebar'}
-        aria-label={compact ? 'Expand sidebar' : 'Collapse sidebar'}
-        style={{ marginTop: 'auto', minHeight: compact ? 48 : 40, border: `1px solid ${TI.border}`,
-          borderRadius: compact ? 14 : 10, background: TI.surfaceAlt, color: TI.ink2, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: compact ? 'center' : 'flex-start',
-          gap: 10, padding: compact ? 0 : '0 12px', fontFamily: TI.ui, fontSize: 12.5,
-          fontWeight: 800 }}>
-        <Ico name="list" size={18} sw={2} />
-        {!compact && <span>{compact ? 'Expand' : 'Menu'}</span>}
-      </button>
     </aside>
   );
 }
@@ -121,7 +166,7 @@ export default function CustomerApp() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => !window.matchMedia('(min-width: 769px)').matches);
 
   useEffect(() => {
-    setSidebarCollapsed(!isDesktop);
+    setSidebarCollapsed(previous => isDesktop ? previous : true);
   }, [isDesktop]);
 
   const openTab = (nextTab) => {
