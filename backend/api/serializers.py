@@ -1,6 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from datetime import date
 from django.db.models import Avg
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, RoomType, Room, Booking, RoomReview, AuditLog, ReportRecord, PushSubscription, next_booking_id
@@ -239,26 +240,51 @@ class BookingSerializer(serializers.ModelSerializer):
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):
+    SERVICE_FEE = 850
+
     class Meta:
         model = Booking
         fields = ['room', 'check_in', 'check_out', 'nights', 'guests_count', 'amount']
 
     def validate(self, attrs):
         request = self.context['request']
+        today = timezone.localdate()
+        room = attrs['room']
+        check_in = attrs['check_in']
+        check_out = attrs['check_out']
+        guests_count = attrs.get('guests_count') or 1
+
+        if room.status != 'Active':
+            raise serializers.ValidationError({'detail': 'This room is not available for booking.'})
+        if check_in < today:
+            raise serializers.ValidationError({'detail': 'Check-in date cannot be in the past.'})
+        if check_out <= check_in:
+            raise serializers.ValidationError({'detail': 'Check-out date must be after check-in date.'})
+        if guests_count < 1:
+            raise serializers.ValidationError({'detail': 'Guests must be at least 1.'})
+        if guests_count > room.capacity:
+            raise serializers.ValidationError({'detail': f'This room can only accommodate up to {room.capacity} guests.'})
+
+        nights = (check_out - check_in).days
+        attrs['nights'] = nights
+        attrs['amount'] = (room.price * nights) + self.SERVICE_FEE
+
         pending_exists = Booking.objects.filter(
             guest=request.user,
-            room=attrs['room'],
+            room=room,
             status='Pending',
+            check_in__lt=check_out,
+            check_out__gt=check_in,
         ).exists()
         if pending_exists:
             raise serializers.ValidationError({
                 'detail': 'You already have a pending reservation for this room.'
             })
         overlap_exists = Booking.objects.filter(
-            room=attrs['room'],
+            room=room,
             status__in=['Pending', 'Confirmed'],
-            check_in__lt=attrs['check_out'],
-            check_out__gt=attrs['check_in'],
+            check_in__lt=check_out,
+            check_out__gt=check_in,
         ).exists()
         if overlap_exists:
             raise serializers.ValidationError({

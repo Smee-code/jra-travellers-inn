@@ -7,6 +7,19 @@ import { TI } from '../../theme';
 const M = { ink: TI.ink, sub: TI.sub, faint: TI.faint, border: TI.border, accent: TI.accent, surface: '#fff', bg: '#f2f3f7', ui: TI.ui };
 const peso = (n) => `₱${Number(n).toLocaleString()}`;
 const AMENITY_LABELS = { wifi: 'Free Wi-Fi', ac: 'Air conditioning', tv: 'Smart TV', coffee: 'Coffee bar', bath: 'Rain shower', parking: 'Free parking' };
+const diffDays = (start, end) => {
+  if (!start || !end) return 0;
+  return Math.max(0, Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000));
+};
+const formatRange = (start, end) => {
+  if (!start || !end) return 'Select dates';
+  const a = new Date(`${start}T00:00:00`);
+  const b = new Date(`${end}T00:00:00`);
+  const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+  const first = a.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+  const second = b.toLocaleString('en-US', sameMonth ? { day: 'numeric' } : { month: 'short', day: 'numeric' });
+  return `${first}-${second}`;
+};
 
 function Stars({ rating, reviews }) {
   return (
@@ -27,6 +40,7 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
   }, [id, dates?.in, dates?.out]);
 
   if (!room) return <div style={{ padding: 40, color: TI.sub, fontFamily: TI.ui }}>Loading…</div>;
+  const selectedNights = diffDays(dates?.in, dates?.out) || 1;
 
   return (
     <div style={{ paddingBottom: isDesktop ? 0 : 178, background: M.bg, minHeight: '100%', maxWidth: isDesktop ? 1180 : 'none',
@@ -119,10 +133,10 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
         margin: isDesktop ? '18px 28px 0' : 0, borderRadius: isDesktop ? 10 : 0 }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: M.ink }}>{peso(room.price)}</div>
-          <div style={{ fontSize: 11.5, color: M.sub }}>4 nights · Jun 14–18</div>
+          <div style={{ fontSize: 11.5, color: M.sub }}>{selectedNights} night{selectedNights !== 1 ? 's' : ''} · {formatRange(dates?.in, dates?.out)}</div>
         </div>
         <Btn size="lg" full variant={room.available ? 'primary' : 'outline'}
-          onClick={() => room.available && onReserve(id)} disabled={!room.available}
+          onClick={() => room.available && onReserve(id, dates)} disabled={!room.available}
           style={{ flex: 1, ...(room.available ? {} : { background: '#f1f5f9', color: M.sub, borderColor: M.border }) }}>
           {room.available ? 'Reserve' : 'Unavailable'}
         </Btn>

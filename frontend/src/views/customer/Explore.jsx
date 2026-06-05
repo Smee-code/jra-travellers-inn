@@ -6,6 +6,20 @@ import { TI } from '../../theme';
 
 const M = { ink: TI.ink, sub: TI.sub, faint: TI.faint, border: TI.border, accent: TI.accent, surface: '#fff', bg: '#f2f3f7', ui: TI.ui, mono: TI.mono };
 const peso = (n) => `\u20b1${Number(n).toLocaleString()}`;
+const dateOnly = (date = new Date()) => {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+};
+const addDays = (value, days) => {
+  const d = new Date(`${value}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return dateOnly(d);
+};
+const diffDays = (start, end) => {
+  if (!start || !end) return 0;
+  return Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000);
+};
 
 function Stars({ rating, reviews }) {
   return (
@@ -64,6 +78,7 @@ export default function Explore({ onOpen, isDesktop = false }) {
   const [tripOpen, setTripOpen] = useState(false);
   const [guests, setGuests] = useState(2);
   const [dates, setDates] = useState({ in: '', out: '' });
+  const today = dateOnly();
 
   useEffect(() => {
     api.get('/booking-options/').then(r => {
@@ -74,8 +89,9 @@ export default function Explore({ onOpen, isDesktop = false }) {
 
   useEffect(() => {
     if (!dates.in || !dates.out) return;
+    if (dates.in < today || diffDays(dates.in, dates.out) <= 0) return;
     api.get(`/rooms/?check_in=${dates.in}&check_out=${dates.out}`).then(r => setRooms(r.data.results || r.data));
-  }, [dates.in, dates.out]);
+  }, [dates.in, dates.out, today]);
 
   const filtered = rooms.filter(r => !type || r.room_type_name === type);
   const dateLabel = dates.in && dates.out
@@ -208,9 +224,15 @@ export default function Explore({ onOpen, isDesktop = false }) {
       {tripOpen && (
         <Sheet title="Edit search" onClose={() => setTripOpen(false)}>
           <label style={labelStyle}>Check-in</label>
-          <input type="date" value={dates.in} onChange={e => setDates(d => ({ ...d, in: e.target.value }))} style={inputStyle} />
+          <input type="date" min={today} value={dates.in} onChange={e => setDates(d => {
+            const nextIn = e.target.value < today ? today : e.target.value;
+            return { ...d, in: nextIn, out: !d.out || diffDays(nextIn, d.out) <= 0 ? addDays(nextIn, 1) : d.out };
+          })} style={inputStyle} />
           <label style={{ ...labelStyle, marginTop: 12 }}>Check-out</label>
-          <input type="date" value={dates.out} onChange={e => setDates(d => ({ ...d, out: e.target.value }))} style={inputStyle} />
+          <input type="date" min={dates.in ? addDays(dates.in, 1) : addDays(today, 1)} value={dates.out} onChange={e => setDates(d => ({
+            ...d,
+            out: diffDays(d.in, e.target.value) <= 0 ? addDays(d.in || today, 1) : e.target.value,
+          }))} style={inputStyle} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: M.ink }}>Guests</span>
             <Stepper value={guests} min={1} max={8} onChange={setGuests} />

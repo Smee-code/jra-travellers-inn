@@ -4,8 +4,12 @@ import { TI } from '../../theme';
 
 const M = { ink: TI.ink, sub: TI.sub, surface: '#fff', bg: '#f2f3f7', mono: TI.mono, ui: TI.ui };
 const peso = (n) => `₱${Number(n).toLocaleString()}`;
+const formatDate = (value) => value
+  ? new Date(`${value}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  : 'Not set';
 
 export default function Success({ booking, onDone }) {
+  const nights = Number(booking.nights || 0);
   return (
     <div style={{ background: M.surface, minHeight: '100%', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center' }}>
@@ -24,7 +28,9 @@ export default function Success({ booking, onDone }) {
       <div style={{ width: '100%', background: M.bg, borderRadius: 16, padding: 16, margin: '24px 0', textAlign: 'left' }}>
         {[
           ['Booking ID', booking.booking_id || 'BK-3392'],
-          ['Dates', `Jun 14 – 18 · ${booking.nights} nights`],
+          ['Check-in', formatDate(booking.check_in)],
+          ['Check-out', formatDate(booking.check_out)],
+          ['Nights', `${nights} night${nights !== 1 ? 's' : ''}`],
           ['Total', peso(booking.total)],
         ].map(([k, v]) => (
           <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0' }}>

@@ -6,18 +6,31 @@ import { TI } from '../../theme';
 
 const M = { ink: TI.ink, sub: TI.sub, faint: TI.faint, border: TI.border, accent: TI.accent, surface: '#fff', bg: '#f2f3f7', ui: TI.ui };
 const peso = (n) => `\u20b1${Number(n).toLocaleString()}`;
+const SERVICE_FEE = 850;
+const dateOnly = (date = new Date()) => {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+};
+const addDays = (value, days) => {
+  const d = new Date(`${value}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return dateOnly(d);
+};
+const diffDays = (start, end) => {
+  if (!start || !end) return 0;
+  return Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000);
+};
 
-function DateSheet({ dates, setDates, onClose }) {
+function DateSheet({ dates, setDates, today, onClose }) {
   const updateDate = (key, value) => {
     setDates(d => {
       const next = { ...d, [key]: value };
       if (key === 'in') {
-        const ci = new Date(value);
-        const co = new Date(next.out);
-        if (co <= ci) {
-          ci.setDate(ci.getDate() + 1);
-          next.out = ci.toISOString().slice(0, 10);
-        }
+        if (next.in < today) next.in = today;
+        if (!next.out || diffDays(next.in, next.out) <= 0) next.out = addDays(next.in, 1);
+      } else if (key === 'out' && diffDays(next.in, next.out) <= 0) {
+        next.out = addDays(next.in, 1);
       }
       return next;
     });
@@ -36,8 +49,8 @@ function DateSheet({ dates, setDates, onClose }) {
             <Ico name="x" size={15} color={M.sub} />
           </button>
         </div>
-        <DateInput label="Check-in" value={dates.in} onChange={v => updateDate('in', v)} />
-        <DateInput label="Check-out" value={dates.out} onChange={v => updateDate('out', v)} />
+        <DateInput label="Check-in" value={dates.in} min={today} onChange={v => updateDate('in', v)} />
+        <DateInput label="Check-out" value={dates.out} min={dates.in ? addDays(dates.in, 1) : addDays(today, 1)} onChange={v => updateDate('out', v)} />
         <button onClick={onClose} style={{ width: '100%', marginTop: 16, height: 42,
           border: 'none', borderRadius: 999, background: M.accent, color: '#fff',
           fontFamily: M.ui, fontSize: 14, fontWeight: 800, cursor: 'pointer' }}>Apply</button>
@@ -46,18 +59,18 @@ function DateSheet({ dates, setDates, onClose }) {
   );
 }
 
-function DateInput({ label, value, onChange }) {
+function DateInput({ label, value, min, onChange }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: M.ink, marginBottom: 6 }}>{label}</span>
-      <input type="date" value={value} onChange={e => onChange(e.target.value)}
+      <input type="date" value={value} min={min} onChange={e => onChange(e.target.value)}
         style={{ width: '100%', height: 40, border: `1px solid ${M.border}`, borderRadius: 10,
           background: M.bg, padding: '0 11px', fontFamily: M.ui, fontSize: 13, boxSizing: 'border-box' }} />
     </label>
   );
 }
 
-export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false }) {
+export default function BookingScreen({ id, dates: initialDates, onBack, onConfirm, isDesktop = false }) {
   const [room, setRoom] = useState(null);
   const [guests, setGuests] = useState(2);
   const [nightCount, setNightCount] = useState(4);
@@ -65,10 +78,19 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
   const [dateOpen, setDateOpen] = useState(false);
   const [pendingDuplicate, setPendingDuplicate] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
-  const [dates, setDates] = useState({ in: '', out: '' });
+  const today = dateOnly();
+  const [dates, setDates] = useState(() => ({
+    in: initialDates?.in && initialDates.in >= today ? initialDates.in : '',
+    out: initialDates?.out || '',
+  }));
 
   useEffect(() => {
-    api.get('/booking-options/').then(r => setDates(r.data.default_dates));
+    api.get('/booking-options/').then(r => {
+      setDates(current => {
+        if (current.in && current.out && diffDays(current.in, current.out) > 0) return current;
+        return r.data.default_dates;
+      });
+    });
     api.get(`/bookings/?room=${id}&status=Pending`)
       .then(r => {
         const list = r.data.results || r.data;
@@ -87,7 +109,7 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
 
   useEffect(() => {
     if (!dates.in || !dates.out) return;
-    const diff = Math.round((new Date(dates.out) - new Date(dates.in)) / 86400000);
+    const diff = diffDays(dates.in, dates.out);
     if (diff > 0 && diff !== nightCount) setNightCount(Math.min(30, diff));
   }, [dates.in, dates.out, nightCount]);
 
@@ -95,19 +117,20 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
 
   const nights = nightCount;
   const sub = room.price * nights;
-  const fee = 850;
+  const fee = SERVICE_FEE;
   const total = sub + fee;
-  const fmt = (v) => v ? new Date(v).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Loading';
+  const hasInvalidPastDate = Boolean(dates.in && dates.in < today);
+  const hasInvalidRange = Boolean(dates.in && dates.out && diffDays(dates.in, dates.out) <= 0);
+  const fmt = (v) => v ? new Date(`${v}T00:00:00`).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Loading';
   const setNights = (value) => {
     if (!dates.in) return;
     const next = Math.max(1, Math.min(30, value));
     setNightCount(next);
-    const out = new Date(dates.in);
-    out.setDate(out.getDate() + next);
-    setDates(d => ({ ...d, out: out.toISOString().slice(0, 10) }));
+    setDates(d => ({ ...d, out: addDays(d.in, next) }));
   };
 
   const confirm = async () => {
+    if (hasInvalidPastDate || hasInvalidRange) return;
     if (pendingDuplicate) return;
     if (unavailable) return;
     if (saving) return;
@@ -122,7 +145,15 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
         guests_count: guests,
         amount: total,
       });
-      onConfirm({ room, guests, total, nights, booking_id: data.booking_id, check_in: dates.in, check_out: dates.out });
+      onConfirm({
+        room,
+        guests,
+        total: data.amount ?? total,
+        nights: data.nights ?? nights,
+        booking_id: data.booking_id,
+        check_in: data.check_in ?? dates.in,
+        check_out: data.check_out ?? dates.out,
+      });
     } catch (e) {
       alert('Booking failed: ' + (e.response?.data?.detail || e.message));
       if (e.response?.data?.detail?.includes('pending reservation')) setPendingDuplicate(true);
@@ -207,7 +238,11 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '0 4px' }}>
           <Ico name="shield" size={16} color={M.sub} style={{ flex: '0 0 auto', marginTop: 1 }} />
           <span style={{ fontSize: 12, color: M.sub, lineHeight: 1.5 }}>
-            {unavailable ? (
+            {hasInvalidPastDate ? (
+              <>Check-in date cannot be in the past. Please choose today or a future date.</>
+            ) : hasInvalidRange ? (
+              <>Check-out must be after check-in. Please choose valid dates.</>
+            ) : unavailable ? (
               <>This room is already booked for the selected dates. Please choose a different room or dates.</>
             ) : pendingDuplicate ? (
               <>You already have a <b style={{ color: M.ink }}>Pending</b> reservation for this room. You can still book a different room.</>
@@ -223,12 +258,12 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
         background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)',
         borderTop: `1px solid ${M.border}`, zIndex: 30, maxWidth: isDesktop ? 980 : 'none',
         margin: isDesktop ? '0 auto' : 0 }}>
-        <Btn size="lg" full onClick={confirm} disabled={saving || pendingDuplicate || unavailable}>
-          {unavailable ? 'Unavailable' : pendingDuplicate ? 'Already pending' : saving ? 'Sending...' : 'Confirm reservation'}
+        <Btn size="lg" full onClick={confirm} disabled={saving || pendingDuplicate || unavailable || hasInvalidPastDate || hasInvalidRange}>
+          {hasInvalidPastDate ? 'Choose a future date' : hasInvalidRange ? 'Fix dates' : unavailable ? 'Unavailable' : pendingDuplicate ? 'Already pending' : saving ? 'Sending...' : 'Confirm reservation'}
         </Btn>
       </div>
 
-      {dateOpen && <DateSheet dates={dates} setDates={setDates} onClose={() => setDateOpen(false)} />}
+      {dateOpen && <DateSheet dates={dates} setDates={setDates} today={today} onClose={() => setDateOpen(false)} />}
     </div>
   );
 }

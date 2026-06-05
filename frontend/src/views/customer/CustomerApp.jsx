@@ -62,8 +62,8 @@ export default function CustomerApp() {
   };
 
   let screen;
-  if (view?.type === 'room') screen = <RoomDetail id={view.id} dates={view.dates} isDesktop={isDesktop} onBack={() => setView(null)} onReserve={(id) => setView({ type: 'book', id })} />;
-  else if (view?.type === 'book') screen = <BookingScreen id={view.id} isDesktop={isDesktop} onBack={() => setView({ type: 'room', id: view.id })} onConfirm={(b) => setView({ type: 'success', booking: b })} />;
+  if (view?.type === 'room') screen = <RoomDetail id={view.id} dates={view.dates} isDesktop={isDesktop} onBack={() => setView(null)} onReserve={(id, dates) => setView({ type: 'book', id, dates })} />;
+  else if (view?.type === 'book') screen = <BookingScreen id={view.id} dates={view.dates} isDesktop={isDesktop} onBack={() => setView({ type: 'room', id: view.id, dates: view.dates })} onConfirm={(b) => setView({ type: 'success', booking: b })} />;
   else if (view?.type === 'success') screen = <Success booking={view.booking} onDone={() => { setView(null); setTab('trips'); }} />;
   else if (tab === 'explore') screen = <Explore isDesktop={isDesktop} onOpen={(id, dates) => setView({ type: 'room', id, dates })} />;
   else if (tab === 'trips') screen = <Trips isDesktop={isDesktop} onBookAgain={(id) => setView({ type: 'room', id })} />;
