@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Explore from './Explore';
 import RoomDetail from './RoomDetail';
 import BookingScreen from './BookingScreen';
@@ -31,9 +32,10 @@ function useIsDesktop() {
 
 function TabBar({ tab, setTab, onSelect }) {
   return (
-    <div style={{ minHeight: 66, paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-      background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(16px)',
-      borderTop: `1px solid ${M.border}`, display: 'flex', pointerEvents: 'auto' }}>
+    <nav aria-label="Customer navigation" style={{ height: 'calc(72px + env(safe-area-inset-bottom))',
+      paddingBottom: 'env(safe-area-inset-bottom)', background: '#fff',
+      borderTop: `1px solid ${M.border}`, boxShadow: '0 -10px 30px rgba(15,23,42,.10)',
+      display: 'flex', pointerEvents: 'auto' }}>
       {TABS.map(t => {
         const on = t.id === tab;
         return (
@@ -45,7 +47,7 @@ function TabBar({ tab, setTab, onSelect }) {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -116,13 +118,15 @@ export default function CustomerApp() {
     <div style={{ minHeight: '100dvh', background: '#f2f3f7', fontFamily: TI.ui,
       color: TI.ink, overflowX: 'hidden' }}>
       <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
-        style={{ minHeight: '100dvh', background: '#f2f3f7', paddingBottom: showTabs ? 82 : 0 }}>
+        style={{ minHeight: '100dvh', background: '#f2f3f7', paddingBottom: 104 }}>
         {screen}
       </main>
-      {showTabs && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 70 }}>
+      {showTabs && createPortal(
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 2147483000,
+          display: isDesktop ? 'none' : 'block', pointerEvents: 'auto' }}>
           <TabBar tab={tab} setTab={setTab} onSelect={openTab} />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
