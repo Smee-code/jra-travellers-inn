@@ -53,7 +53,7 @@ export default function CustomerApp() {
   const [tab, setTab] = useState('explore');
   const [view, setView] = useState(null);
   const isDesktop = useIsDesktop();
-  const showTabs = view?.type !== 'success';
+  const showTabs = true;
   const openTab = (nextTab) => {
     setView(null);
     setTab(nextTab);
