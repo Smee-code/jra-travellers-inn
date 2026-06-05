@@ -1,29 +1,34 @@
-# Traveller's Inn Deployment
+# Traveller's Inn PythonAnywhere Deployment
 
-## Backend on Render
+This project is configured to use SQLite for PythonAnywhere.
 
-Create a Render Web Service from this repository.
+## 1. Upload / clone the repository
 
-Use these commands if not using `render.yaml`:
-
-```bash
-pip install -r requirements.txt && python backend/manage.py collectstatic --noinput && python backend/manage.py migrate
-```
+On PythonAnywhere Bash:
 
 ```bash
-cd backend && gunicorn travellers_inn.wsgi:application
+git clone https://github.com/Smee-code/jra-travellers-inn.git
+cd jra-travellers-inn
 ```
 
-Set these Render environment variables:
+## 2. Create and activate a virtualenv
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## 3. Configure `.env`
+
+Create `.env` in the project root:
 
 ```env
 SECRET_KEY=your-long-random-secret
 DEBUG=False
-DATABASE_URL=postgresql://postgres:password@db.your-project.supabase.co:5432/postgres
-DATABASE_SSL_REQUIRE=True
-ALLOWED_HOSTS=your-render-service.onrender.com
-CORS_ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
-CSRF_TRUSTED_ORIGINS=https://your-render-service.onrender.com,https://your-vercel-app.vercel.app
+ALLOWED_HOSTS=yourusername.pythonanywhere.com
+CORS_ALLOWED_ORIGINS=https://yourusername.pythonanywhere.com
+CSRF_TRUSTED_ORIGINS=https://yourusername.pythonanywhere.com
 SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
@@ -32,41 +37,85 @@ WEBPUSH_VAPID_PRIVATE_KEY=your-private-key
 WEBPUSH_VAPID_SUBJECT=mailto:stay@travellersinn.ph
 ```
 
-## Frontend on Vercel
+## 4. Build frontend locally or on PythonAnywhere
 
-Set the Vercel project root to:
+If Node is available on PythonAnywhere:
 
-```text
-frontend
-```
-
-Use:
-
-```text
+```bash
+cd frontend
+npm install
 npm run build
 ```
 
-Output directory:
+The build output is `frontend/dist`.
 
-```text
-dist
-```
+If Node is not available, build locally and upload `frontend/dist`.
 
-Set this Vercel environment variable:
-
-```env
-VITE_API_BASE_URL=https://your-render-service.onrender.com/api
-```
-
-## Transfer SQLite Data to Supabase/PostgreSQL
-
-Put your Supabase PostgreSQL connection string in `.env` or in Render env as `DATABASE_URL`.
-
-Then run locally:
+## 5. Django setup
 
 ```bash
 cd backend
-..\.venv\Scripts\python.exe manage.py transfer_sqlite_to_postgres --flush-target
+python manage.py migrate
+python manage.py collectstatic --noinput
 ```
 
-Use `--flush-target` only for a fresh PostgreSQL database or when you intentionally want to replace its current data.
+SQLite database path:
+
+```text
+backend/db.sqlite3
+```
+
+Keep this file backed up because it contains the live data.
+
+## 6. PythonAnywhere Web app settings
+
+Create a Manual Configuration web app.
+
+Virtualenv path:
+
+```text
+/home/yourusername/jra-travellers-inn/.venv
+```
+
+Source code:
+
+```text
+/home/yourusername/jra-travellers-inn/backend
+```
+
+Static files:
+
+```text
+/static/ -> /home/yourusername/jra-travellers-inn/backend/staticfiles
+```
+
+If serving the React frontend from PythonAnywhere too:
+
+```text
+/assets/ -> /home/yourusername/jra-travellers-inn/frontend/dist/assets
+/rooms/ -> /home/yourusername/jra-travellers-inn/frontend/dist/rooms
+/landing-hero.png -> /home/yourusername/jra-travellers-inn/frontend/dist/landing-hero.png
+/sw.js -> /home/yourusername/jra-travellers-inn/frontend/dist/sw.js
+```
+
+## 7. WSGI file
+
+Use this in the PythonAnywhere WSGI file:
+
+```python
+import os
+import sys
+
+project_root = '/home/yourusername/jra-travellers-inn'
+backend_root = f'{project_root}/backend'
+
+if backend_root not in sys.path:
+    sys.path.insert(0, backend_root)
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'travellers_inn.settings')
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+```
+
+Reload the web app after saving changes.
