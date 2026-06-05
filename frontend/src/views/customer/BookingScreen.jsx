@@ -24,7 +24,7 @@ function DateSheet({ dates, setDates, onClose }) {
   };
 
   return (
-    <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 60,
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 60,
       background: 'rgba(15,23,42,.35)', display: 'flex', alignItems: 'flex-end' }}>
       <div onClick={e => e.stopPropagation()} className="ti-fade" style={{ width: '100%', background: M.surface,
         borderRadius: '22px 22px 0 0', padding: '18px 18px 28px', boxShadow: TI.shadowLg }}>
@@ -134,7 +134,7 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
 
   return (
     <div style={{ background: M.bg, minHeight: '100%', paddingBottom: isDesktop ? 0 : 110 }}>
-      <div style={{ padding: isDesktop ? '18px 28px' : '54px 18px 12px', background: M.surface,
+      <div style={{ padding: isDesktop ? '18px 28px' : '16px 18px 12px', background: M.surface,
         borderBottom: `1px solid ${M.border}`, display: 'flex', alignItems: 'center', gap: 12,
         position: 'sticky', top: 0, zIndex: 8 }}>
         <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: 999, border: `1px solid ${M.border}`,
@@ -219,7 +219,7 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
         </div>
       </div>
 
-      <div style={{ position: isDesktop ? 'sticky' : 'absolute', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px 26px',
+      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px max(18px, env(safe-area-inset-bottom))',
         background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)',
         borderTop: `1px solid ${M.border}`, zIndex: 30, maxWidth: isDesktop ? 980 : 'none',
         margin: isDesktop ? '0 auto' : 0 }}>

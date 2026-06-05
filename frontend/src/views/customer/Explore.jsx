@@ -19,10 +19,11 @@ function Stars({ rating, reviews }) {
 
 function Sheet({ title, children, onClose }) {
   return (
-    <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 90,
-      background: 'rgba(15,23,42,.35)', padding: '94px 18px 0' }}>
-      <div className="ti-fade" onClick={e => e.stopPropagation()} style={{ width: '100%', background: M.surface,
-        borderRadius: 18, padding: 18, boxShadow: TI.shadowLg }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 90,
+      background: 'rgba(15,23,42,.35)', padding: '18px', display: 'flex', alignItems: 'flex-start',
+      justifyContent: 'center' }}>
+      <div className="ti-fade" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 520,
+        background: M.surface, borderRadius: 18, padding: 18, boxShadow: TI.shadowLg }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: M.ink }}>{title}</div>
           <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 999, border: `1px solid ${M.border}`,
@@ -83,7 +84,7 @@ export default function Explore({ onOpen, isDesktop = false }) {
 
   return (
     <div style={{ paddingBottom: isDesktop ? 36 : 96, maxWidth: isDesktop ? 1180 : 'none', margin: isDesktop ? '0 auto' : 0 }}>
-      <div style={{ padding: isDesktop ? '26px 28px 14px' : '54px 18px 12px', background: M.surface, display: 'flex', alignItems: 'center', gap: 11,
+      <div style={{ padding: isDesktop ? '26px 28px 14px' : '16px 18px 12px', background: M.surface, display: 'flex', alignItems: 'center', gap: 11,
         borderBottom: isDesktop ? `1px solid ${M.border}` : 'none' }}>
         <BrandMark size={44} radius={12} iconSize={23} style={{ boxShadow: '0 3px 10px rgba(79,70,229,.3)' }} />
         <div style={{ flex: 1, minWidth: 0, lineHeight: 1.15 }}>

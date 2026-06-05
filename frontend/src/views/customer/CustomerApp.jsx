@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import MobileFrame from '../../layouts/MobileFrame';
 import Explore from './Explore';
 import RoomDetail from './RoomDetail';
 import BookingScreen from './BookingScreen';
@@ -32,7 +31,7 @@ function useIsDesktop() {
 
 function TabBar({ tab, setTab }) {
   return (
-    <div style={{ height: 80, paddingBottom: 20,
+    <div style={{ minHeight: 66, paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
       background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(16px)',
       borderTop: `1px solid ${M.border}`, display: 'flex', pointerEvents: 'auto' }}>
       {TABS.map(t => {
@@ -40,7 +39,7 @@ function TabBar({ tab, setTab }) {
         return (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, border: 'none',
             background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 4, paddingTop: 10, color: on ? M.accent : M.faint }}>
+            alignItems: 'center', gap: 4, paddingTop: 9, color: on ? M.accent : M.faint }}>
             <Ico name={t.icon} size={22} sw={on ? 2.2 : 1.8} />
             <span style={{ fontSize: 10.5, fontWeight: on ? 700 : 500, fontFamily: M.ui }}>{t.label}</span>
           </button>
@@ -110,14 +109,17 @@ export default function CustomerApp() {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden', background: 'radial-gradient(120% 80% at 50% 0%, #eef1f8, #e7eaf1)', padding: 0 }}>
-      <MobileFrame footer={showTabs ? <TabBar tab={tab} setTab={setTab} /> : null}>
-        <div key={view ? view.type + (view.id || '') : tab} className="ti-fade"
-          style={{ minHeight: '100%', background: '#f2f3f7' }}>
-          {screen}
+    <div style={{ minHeight: '100dvh', background: '#f2f3f7', fontFamily: TI.ui,
+      color: TI.ink, overflowX: 'hidden' }}>
+      <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
+        style={{ minHeight: '100dvh', background: '#f2f3f7', paddingBottom: showTabs ? 82 : 0 }}>
+        {screen}
+      </main>
+      {showTabs && (
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 70 }}>
+          <TabBar tab={tab} setTab={setTab} />
         </div>
-      </MobileFrame>
+      )}
     </div>
   );
 }

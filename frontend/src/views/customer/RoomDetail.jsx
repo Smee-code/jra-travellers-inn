@@ -43,7 +43,7 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
           <Ico name="bed" size={72} color="rgba(255,255,255,.4)" sw={1.1}
             style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-60%)' }} />
         )}
-        <button onClick={onBack} style={{ position: 'absolute', top: isDesktop ? 18 : 56, left: 16, width: 38, height: 38,
+        <button onClick={onBack} style={{ position: 'absolute', top: isDesktop ? 18 : 16, left: 16, width: 38, height: 38,
           borderRadius: 999, border: 'none', background: 'rgba(255,255,255,.9)', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
           <Ico name="chevL" size={19} color={M.ink} sw={2.2} />
@@ -113,7 +113,7 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
       </div>
 
       {/* sticky reserve bar */}
-      <div style={{ position: isDesktop ? 'sticky' : 'absolute', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px 26px',
+      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px max(18px, env(safe-area-inset-bottom))',
         background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)',
         borderTop: `1px solid ${M.border}`, display: 'flex', alignItems: 'center', gap: 14, zIndex: 30,
         margin: isDesktop ? '18px 28px 0' : 0, borderRadius: isDesktop ? 10 : 0 }}>

@@ -102,7 +102,7 @@ export default function Trips({ onBookAgain, isDesktop = false }) {
 
   return (
     <div style={{ paddingBottom: isDesktop ? 36 : 96, background: M.bg, minHeight: '100%' }}>
-      <div style={{ padding: isDesktop ? '26px 28px 14px' : '54px 18px 12px', background: M.surface,
+      <div style={{ padding: isDesktop ? '26px 28px 14px' : '18px 18px 12px', background: M.surface,
         borderBottom: `1px solid ${M.border}` }}>
         <div style={{ fontSize: 19, fontWeight: 800, color: M.ink }}>My trips</div>
         <div style={{ fontSize: 12, color: M.sub, marginTop: 1 }}>{upcoming.length} upcoming · {past.length} past</div>
