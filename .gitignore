@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+*.pem
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Django local/runtime files
+backend/db.sqlite3
+backend/staticfiles/
+
+# Node/Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local temp/cache
+.tmp/
+.claude/
+
+# Prototype/export artifacts
+travellers-inn-extracted/
+Travellers Inn-handoff.zip
+JRA Travellers Inn - Landing Page.html
+
+# Local/generated credentials and datasets
+sample_accounts_credentials.txt
