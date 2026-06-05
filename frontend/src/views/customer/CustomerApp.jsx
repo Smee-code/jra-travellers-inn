@@ -101,13 +101,14 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = fa
       </nav>
 
       <button type="button" onClick={onToggle} title={compact ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={compact ? 'Expand sidebar' : 'Collapse sidebar'}
         style={{ marginTop: 'auto', minHeight: compact ? 48 : 40, border: `1px solid ${TI.border}`,
           borderRadius: compact ? 14 : 10, background: TI.surfaceAlt, color: TI.ink2, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: compact ? 'center' : 'space-between',
+          display: 'flex', alignItems: 'center', justifyContent: compact ? 'center' : 'flex-start',
           gap: 10, padding: compact ? 0 : '0 12px', fontFamily: TI.ui, fontSize: 12.5,
           fontWeight: 800 }}>
-        {!compact && <span>Collapse</span>}
-        <Ico name={compact ? 'chevR' : 'chevL'} size={17} sw={2} />
+        <Ico name="list" size={18} sw={2} />
+        {!compact && <span>{compact ? 'Expand' : 'Menu'}</span>}
       </button>
     </aside>
   );
