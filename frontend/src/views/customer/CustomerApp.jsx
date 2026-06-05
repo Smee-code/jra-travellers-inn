@@ -15,6 +15,9 @@ const NAV_ITEMS = [
   { id: 'profile', icon: 'user', label: 'Profile' },
 ];
 
+const SIDEBAR_WIDE = 248;
+const SIDEBAR_COMPACT = 88;
+
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 769px)').matches);
 
@@ -28,11 +31,12 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect }) {
+function CustomerSidebar({ activeTab, hasDetailView, compact = false, fixed = false, onSelect, onToggle }) {
+  const width = compact ? SIDEBAR_COMPACT : SIDEBAR_WIDE;
   return (
     <aside style={{
-      width: compact ? 88 : 248,
-      flex: `0 0 ${compact ? 88 : 248}px`,
+      width,
+      flex: `0 0 ${width}px`,
       minHeight: '100dvh',
       background: '#fff',
       borderRight: `1px solid ${TI.border}`,
@@ -40,11 +44,12 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect }
       display: 'flex',
       flexDirection: 'column',
       gap: compact ? 18 : 22,
-      position: compact ? 'fixed' : 'sticky',
+      position: fixed ? 'fixed' : 'sticky',
       left: 0,
       top: 0,
-      bottom: compact ? 0 : undefined,
+      bottom: fixed ? 0 : undefined,
       zIndex: 50,
+      transition: 'width .18s ease, flex-basis .18s ease',
     }}>
       <div style={{
         display: 'flex',
@@ -94,6 +99,16 @@ function CustomerSidebar({ activeTab, hasDetailView, compact = false, onSelect }
           );
         })}
       </nav>
+
+      <button type="button" onClick={onToggle} title={compact ? 'Expand sidebar' : 'Collapse sidebar'}
+        style={{ marginTop: 'auto', minHeight: compact ? 48 : 40, border: `1px solid ${TI.border}`,
+          borderRadius: compact ? 14 : 10, background: TI.surfaceAlt, color: TI.ink2, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: compact ? 'center' : 'space-between',
+          gap: 10, padding: compact ? 0 : '0 12px', fontFamily: TI.ui, fontSize: 12.5,
+          fontWeight: 800 }}>
+        {!compact && <span>Collapse</span>}
+        <Ico name={compact ? 'chevR' : 'chevL'} size={17} sw={2} />
+      </button>
     </aside>
   );
 }
@@ -102,6 +117,11 @@ export default function CustomerApp() {
   const [tab, setTab] = useState('explore');
   const [view, setView] = useState(null);
   const isDesktop = useIsDesktop();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => !window.matchMedia('(min-width: 769px)').matches);
+
+  useEffect(() => {
+    setSidebarCollapsed(!isDesktop);
+  }, [isDesktop]);
 
   const openTab = (nextTab) => {
     setView(null);
@@ -131,7 +151,9 @@ export default function CustomerApp() {
     const title = view ? 'Reservation' : NAV_ITEMS.find(item => item.id === tab)?.label;
     return (
       <div style={{ minHeight: '100vh', display: 'flex', background: '#eef1f6', fontFamily: TI.ui }}>
-        <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} onSelect={openTab} />
+        <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)}
+          compact={sidebarCollapsed} onSelect={openTab}
+          onToggle={() => setSidebarCollapsed(value => !value)} />
         <main style={{ flex: 1, minWidth: 0, height: '100vh', overflow: 'auto' }}>
           <header style={{ height: 64, background: '#fff', borderBottom: `1px solid ${TI.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 30px' }}>
@@ -149,9 +171,12 @@ export default function CustomerApp() {
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', background: '#f2f3f7', fontFamily: TI.ui, color: TI.ink }}>
-      <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)} compact onSelect={openTab} />
+      <CustomerSidebar activeTab={tab} hasDetailView={Boolean(view)}
+        compact={sidebarCollapsed} fixed onSelect={openTab}
+        onToggle={() => setSidebarCollapsed(value => !value)} />
       <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
-        style={{ flex: 1, minWidth: 0, marginLeft: 88, minHeight: '100dvh', background: '#f2f3f7' }}>
+        style={{ flex: 1, minWidth: 0, marginLeft: sidebarCollapsed ? SIDEBAR_COMPACT : SIDEBAR_WIDE,
+          minHeight: '100dvh', background: '#f2f3f7', transition: 'margin-left .18s ease' }}>
         {screen}
       </main>
     </div>
