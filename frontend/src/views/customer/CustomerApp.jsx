@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Explore from './Explore';
 import RoomDetail from './RoomDetail';
 import BookingScreen from './BookingScreen';
@@ -12,7 +13,13 @@ import { TI } from '../../theme';
 const M = { accent: TI.accent, faint: TI.faint, border: TI.border, surface: '#fff', ui: TI.ui };
 const TABS = [
   { id: 'explore', icon: 'bed', label: 'Rooms' },
-  { id: 'trips', icon: 'cal', label: 'Trips' },
+  { id: 'trips', icon: 'cal', label: 'Bookings' },
+  { id: 'profile', icon: 'user', label: 'Profile' },
+];
+const MOBILE_NAV = [
+  { id: 'home', icon: 'home', label: 'Home' },
+  { id: 'explore', icon: 'bed', label: 'Rooms' },
+  { id: 'trips', icon: 'cal', label: 'Bookings' },
   { id: 'profile', icon: 'user', label: 'Profile' },
 ];
 
@@ -29,20 +36,16 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-function TabBar({ tab, setTab, onSelect }) {
+function CustomerBottomNav({ tab, onSelect, onHome }) {
   return (
-    <nav aria-label="Customer navigation" style={{ height: 'calc(72px + env(safe-area-inset-bottom))',
-      paddingBottom: 'env(safe-area-inset-bottom)', background: '#fff',
-      borderTop: `1px solid ${M.border}`, boxShadow: '0 -10px 30px rgba(15,23,42,.10)',
-      display: 'flex', pointerEvents: 'auto' }}>
-      {TABS.map(t => {
+    <nav className="customer-bottom-nav" aria-label="Customer navigation">
+      {MOBILE_NAV.map(t => {
         const on = t.id === tab;
         return (
-          <button key={t.id} onClick={() => onSelect ? onSelect(t.id) : setTab(t.id)} style={{ flex: 1, border: 'none',
-            background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 4, paddingTop: 9, color: on ? M.accent : M.faint }}>
-            <Ico name={t.icon} size={22} sw={on ? 2.2 : 1.8} />
-            <span style={{ fontSize: 10.5, fontWeight: on ? 700 : 500, fontFamily: M.ui }}>{t.label}</span>
+          <button key={t.id} type="button" className={on ? 'active' : ''}
+            onClick={() => t.id === 'home' ? onHome() : onSelect(t.id)}>
+            <Ico name={t.icon} size={21} sw={on ? 2.2 : 1.8} />
+            <span>{t.label}</span>
           </button>
         );
       })}
@@ -54,11 +57,13 @@ export default function CustomerApp() {
   const [tab, setTab] = useState('explore');
   const [view, setView] = useState(null);
   const isDesktop = useIsDesktop();
+  const navigate = useNavigate();
   const showTabs = true;
   const openTab = (nextTab) => {
     setView(null);
     setTab(nextTab);
   };
+  const goHome = () => navigate('/');
 
   let screen;
   if (view?.type === 'room') screen = <RoomDetail id={view.id} dates={view.dates} isDesktop={isDesktop} onBack={() => setView(null)} onReserve={(id, dates) => setView({ type: 'book', id, dates })} />;
@@ -114,17 +119,14 @@ export default function CustomerApp() {
   }
 
   return (
-    <div style={{ height: '100dvh', background: '#f2f3f7', fontFamily: TI.ui,
-      color: TI.ink, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="customer-mobile-layout" style={{ minHeight: '100dvh', background: '#f2f3f7',
+      fontFamily: TI.ui, color: TI.ink, overflowX: 'hidden' }}>
       <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
-        style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
-          background: '#f2f3f7', paddingBottom: 18 }}>
+        style={{ minHeight: '100dvh', background: '#f2f3f7' }}>
         {screen}
       </main>
       {showTabs && (
-        <div style={{ flex: '0 0 auto', position: 'relative', zIndex: 20, pointerEvents: 'auto' }}>
-          <TabBar tab={tab} setTab={setTab} onSelect={openTab} />
-        </div>
+        <CustomerBottomNav tab={tab} onSelect={openTab} onHome={goHome} />
       )}
     </div>
   );

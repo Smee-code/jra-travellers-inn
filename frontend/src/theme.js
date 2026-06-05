@@ -42,6 +42,62 @@ export const GLOBAL_CSS = `
   @keyframes ti-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .ti-fade { animation: ti-fade .35s ease both; }
   button { font-family: ${TI.ui}; }
+  .customer-bottom-nav {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .customer-mobile-layout > main {
+      padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+    }
+    .customer-bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      width: 100%;
+      min-height: calc(72px + env(safe-area-inset-bottom));
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid ${TI.border};
+      background: #fff;
+      box-shadow: 0 -10px 30px rgba(15,23,42,.10);
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+    }
+    .customer-bottom-nav button {
+      flex: 1 1 0;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: ${TI.faint};
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      font-family: ${TI.ui};
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .customer-bottom-nav button.active {
+      color: ${TI.accent};
+    }
+    .customer-bottom-nav button span {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  @media (min-width: 769px) {
+    .customer-bottom-nav {
+      display: none !important;
+    }
+  }
   @media (max-width: 820px) {
     .ti-responsive-scope h1 {
       font-size: clamp(22px, 7vw, 28px) !important;
