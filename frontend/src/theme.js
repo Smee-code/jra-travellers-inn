@@ -49,7 +49,7 @@ export const GLOBAL_CSS = `
     .customer-mobile-layout > main {
       padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
     }
-    .customer-bottom-nav {
+    nav.customer-bottom-nav {
       position: fixed;
       left: 0;
       right: 0;
@@ -61,11 +61,11 @@ export const GLOBAL_CSS = `
       border-top: 1px solid ${TI.border};
       background: #fff;
       box-shadow: 0 -10px 30px rgba(15,23,42,.10);
-      display: flex;
+      display: flex !important;
       align-items: stretch;
       justify-content: space-around;
     }
-    .customer-bottom-nav button {
+    nav.customer-bottom-nav button {
       flex: 1 1 0;
       min-width: 0;
       border: 0;
@@ -82,10 +82,10 @@ export const GLOBAL_CSS = `
       font-weight: 700;
       line-height: 1;
     }
-    .customer-bottom-nav button.active {
+    nav.customer-bottom-nav button.active {
       color: ${TI.accent};
     }
-    .customer-bottom-nav button span {
+    nav.customer-bottom-nav button span {
       display: block;
       max-width: 100%;
       overflow: hidden;
@@ -94,7 +94,7 @@ export const GLOBAL_CSS = `
     }
   }
   @media (min-width: 769px) {
-    .customer-bottom-nav {
+    nav.customer-bottom-nav {
       display: none !important;
     }
   }

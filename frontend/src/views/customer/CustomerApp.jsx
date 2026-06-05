@@ -24,10 +24,10 @@ const MOBILE_NAV = [
 ];
 
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 900px)').matches);
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 769px)').matches);
 
   useEffect(() => {
-    const query = window.matchMedia('(min-width: 900px)');
+    const query = window.matchMedia('(min-width: 769px)');
     const update = () => setIsDesktop(query.matches);
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
