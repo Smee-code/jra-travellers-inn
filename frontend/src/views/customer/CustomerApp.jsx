@@ -114,15 +114,15 @@ export default function CustomerApp() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#f2f3f7', fontFamily: TI.ui,
-      color: TI.ink, overflowX: 'hidden', position: 'relative' }}>
+    <div style={{ height: '100dvh', background: '#f2f3f7', fontFamily: TI.ui,
+      color: TI.ink, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <main key={view ? view.type + (view.id || '') : tab} className="ti-fade"
-        style={{ minHeight: '100dvh', background: '#f2f3f7', paddingBottom: 104 }}>
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
+          background: '#f2f3f7', paddingBottom: 18 }}>
         {screen}
       </main>
       {showTabs && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 999999,
-          display: 'block', pointerEvents: 'auto', transform: 'translateZ(0)' }}>
+        <div style={{ flex: '0 0 auto', position: 'relative', zIndex: 20, pointerEvents: 'auto' }}>
           <TabBar tab={tab} setTab={setTab} onSelect={openTab} />
         </div>
       )}
