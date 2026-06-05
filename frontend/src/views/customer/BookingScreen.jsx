@@ -133,7 +133,7 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
   };
 
   return (
-    <div style={{ background: M.bg, minHeight: '100%', paddingBottom: isDesktop ? 0 : 110 }}>
+    <div style={{ background: M.bg, minHeight: '100%', paddingBottom: isDesktop ? 0 : 178 }}>
       <div style={{ padding: isDesktop ? '18px 28px' : '16px 18px 12px', background: M.surface,
         borderBottom: `1px solid ${M.border}`, display: 'flex', alignItems: 'center', gap: 12,
         position: 'sticky', top: 0, zIndex: 8 }}>
@@ -219,7 +219,7 @@ export default function BookingScreen({ id, onBack, onConfirm, isDesktop = false
         </div>
       </div>
 
-      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px max(18px, env(safe-area-inset-bottom))',
+      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: isDesktop ? 0 : 76, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '12px 18px',
         background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)',
         borderTop: `1px solid ${M.border}`, zIndex: 30, maxWidth: isDesktop ? 980 : 'none',
         margin: isDesktop ? '0 auto' : 0 }}>

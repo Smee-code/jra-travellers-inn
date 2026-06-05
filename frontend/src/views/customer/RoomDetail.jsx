@@ -29,7 +29,7 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
   if (!room) return <div style={{ padding: 40, color: TI.sub, fontFamily: TI.ui }}>Loading…</div>;
 
   return (
-    <div style={{ paddingBottom: isDesktop ? 0 : 96, background: M.bg, minHeight: '100%', maxWidth: isDesktop ? 1180 : 'none',
+    <div style={{ paddingBottom: isDesktop ? 0 : 178, background: M.bg, minHeight: '100%', maxWidth: isDesktop ? 1180 : 'none',
       margin: isDesktop ? '0 auto' : 0 }}>
       {/* photo */}
       <div style={{ height: isDesktop ? 420 : 280, margin: isDesktop ? '28px 28px 0' : 0,
@@ -113,7 +113,7 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
       </div>
 
       {/* sticky reserve bar */}
-      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: 0, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '14px 18px max(18px, env(safe-area-inset-bottom))',
+      <div style={{ position: isDesktop ? 'sticky' : 'fixed', bottom: isDesktop ? 0 : 76, left: 0, right: 0, padding: isDesktop ? '16px 28px' : '12px 18px',
         background: 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)',
         borderTop: `1px solid ${M.border}`, display: 'flex', alignItems: 'center', gap: 14, zIndex: 30,
         margin: isDesktop ? '18px 28px 0' : 0, borderRadius: isDesktop ? 10 : 0 }}>

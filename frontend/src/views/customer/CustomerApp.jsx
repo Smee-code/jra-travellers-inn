@@ -29,7 +29,7 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-function TabBar({ tab, setTab }) {
+function TabBar({ tab, setTab, onSelect }) {
   return (
     <div style={{ minHeight: 66, paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
       background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(16px)',
@@ -37,7 +37,7 @@ function TabBar({ tab, setTab }) {
       {TABS.map(t => {
         const on = t.id === tab;
         return (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, border: 'none',
+          <button key={t.id} onClick={() => onSelect ? onSelect(t.id) : setTab(t.id)} style={{ flex: 1, border: 'none',
             background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 4, paddingTop: 9, color: on ? M.accent : M.faint }}>
             <Ico name={t.icon} size={22} sw={on ? 2.2 : 1.8} />
@@ -53,7 +53,11 @@ export default function CustomerApp() {
   const [tab, setTab] = useState('explore');
   const [view, setView] = useState(null);
   const isDesktop = useIsDesktop();
-  const showTabs = !view;
+  const showTabs = view?.type !== 'success';
+  const openTab = (nextTab) => {
+    setView(null);
+    setTab(nextTab);
+  };
 
   let screen;
   if (view?.type === 'room') screen = <RoomDetail id={view.id} dates={view.dates} isDesktop={isDesktop} onBack={() => setView(null)} onReserve={(id) => setView({ type: 'book', id })} />;
@@ -117,7 +121,7 @@ export default function CustomerApp() {
       </main>
       {showTabs && (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 70 }}>
-          <TabBar tab={tab} setTab={setTab} />
+          <TabBar tab={tab} setTab={setTab} onSelect={openTab} />
         </div>
       )}
     </div>
