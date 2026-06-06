@@ -1,10 +1,27 @@
 from django.contrib.auth.password_validation import validate_password
-from datetime import date
+from datetime import date, timedelta
 from django.db.models import Avg
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, RoomType, Room, Booking, RoomReview, AuditLog, ReportRecord, PushSubscription, next_booking_id
+
+
+BOOKING_BLOCKING_STATUSES = ['Confirmed']
+
+
+def has_blocking_booking(room, check_in, check_out, exclude_booking=None):
+    if not check_in or not check_out or check_out <= check_in:
+        return False
+    qs = Booking.objects.filter(
+        room=room,
+        status__in=BOOKING_BLOCKING_STATUSES,
+        check_in__lt=check_out,
+        check_out__gt=check_in,
+    )
+    if exclude_booking is not None:
+        qs = qs.exclude(pk=exclude_booking.pk)
+    return qs.exists()
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -146,6 +163,7 @@ class RoomSerializer(serializers.ModelSerializer):
     room_type_name = serializers.CharField(source='room_type.name', read_only=True)
     available = serializers.SerializerMethodField()
     availability_label = serializers.SerializerMethodField()
+    confirmed_booked_dates = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     recent_reviews = serializers.SerializerMethodField()
@@ -154,7 +172,8 @@ class RoomSerializer(serializers.ModelSerializer):
         model = Room
         fields = ['id', 'room_id', 'name', 'room_type', 'room_type_name', 'capacity',
                   'price', 'status', 'floor', 'amenities', 'rating', 'reviews',
-                  'description', 'gradient_css', 'image_url', 'available', 'availability_label', 'recent_reviews']
+                  'description', 'gradient_css', 'image_url', 'available', 'availability_label',
+                  'confirmed_booked_dates', 'recent_reviews']
 
     def _query_dates(self):
         request = self.context.get('request')
@@ -173,17 +192,30 @@ class RoomSerializer(serializers.ModelSerializer):
         check_in, check_out = self._query_dates()
         if not check_in or not check_out or check_out <= check_in:
             return True
-        return not Booking.objects.filter(
-            room=obj,
-            status__in=['Pending', 'Confirmed'],
-            check_in__lt=check_out,
-            check_out__gt=check_in,
-        ).exists()
+        return not has_blocking_booking(obj, check_in, check_out)
 
     def get_availability_label(self, obj):
         if obj.status != 'Active':
             return 'Unavailable'
         return 'Available' if self.get_available(obj) else 'Unavailable'
+
+    def get_confirmed_booked_dates(self, obj):
+        today = timezone.localdate()
+        horizon = today + timedelta(days=365)
+        dates = set()
+        confirmed = Booking.objects.filter(
+            room=obj,
+            status='Confirmed',
+            check_in__lt=horizon,
+            check_out__gt=today,
+        ).values_list('check_in', 'check_out')
+        for check_in, check_out in confirmed:
+            current = max(check_in, today)
+            last = min(check_out, horizon)
+            while current < last:
+                dates.add(current.isoformat())
+                current += timedelta(days=1)
+        return sorted(dates)
 
     def get_rating(self, obj):
         avg = obj.room_reviews.aggregate(avg=Avg('rating'))['avg']
@@ -280,13 +312,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'detail': 'You already have a pending reservation for this room.'
             })
-        overlap_exists = Booking.objects.filter(
-            room=room,
-            status__in=['Pending', 'Confirmed'],
-            check_in__lt=check_out,
-            check_out__gt=check_in,
-        ).exists()
-        if overlap_exists:
+        if has_blocking_booking(room, check_in, check_out):
             raise serializers.ValidationError({
                 'detail': 'This room is unavailable for the selected dates.'
             })

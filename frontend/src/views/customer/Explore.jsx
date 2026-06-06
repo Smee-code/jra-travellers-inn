@@ -94,6 +94,7 @@ export default function Explore({ onOpen, isDesktop = false }) {
   }, [dates.in, dates.out, today]);
 
   const filtered = rooms.filter(r => !type || r.room_type_name === type);
+  const availableCount = filtered.filter(r => r.available).length;
   const dateLabel = dates.in && dates.out
     ? `${new Date(dates.in).toLocaleString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(dates.out).toLocaleString('en-US', { day: 'numeric' })}`
     : 'Loading dates';
@@ -166,16 +167,15 @@ export default function Explore({ onOpen, isDesktop = false }) {
 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: isDesktop ? '18px 28px 0' : '10px 18px 0' }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: M.ink, letterSpacing: '-0.02em' }}>Our rooms</div>
-        <div style={{ fontSize: 12.5, color: M.sub }}>{filtered.length} available - {dateLabel}</div>
+        <div style={{ fontSize: 12.5, color: M.sub }}>{availableCount} available - {dateLabel}</div>
       </div>
 
       <div style={{ display: isDesktop ? 'grid' : 'flex', gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(280px, 1fr))' : undefined,
         flexDirection: 'column', gap: 16, padding: isDesktop ? '18px 28px' : '14px 18px' }}>
         {filtered.map(r => (
           <div key={r.id} onClick={() => onOpen(r.id, dates)} style={{ background: M.surface, borderRadius: 18,
-            overflow: 'hidden', border: `1px solid ${r.available ? M.border : '#fecaca'}`,
-            boxShadow: '0 2px 10px rgba(15,23,42,.05)', cursor: 'pointer',
-            opacity: r.available ? 1 : .72 }}>
+            overflow: 'hidden', border: `1px solid ${M.border}`,
+            boxShadow: '0 2px 10px rgba(15,23,42,.05)', cursor: 'pointer' }}>
             <div style={{ height: isDesktop ? 180 : 150, background: r.gradient_css || TI.accent, position: 'relative', overflow: 'hidden' }}>
               {r.image_url && <img src={r.image_url} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
               <div style={{ position: 'absolute', inset: 0, background: r.image_url
@@ -185,13 +185,6 @@ export default function Explore({ onOpen, isDesktop = false }) {
                 <Ico name="bed" size={40} color="rgba(255,255,255,.55)" sw={1.2}
                   style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-60%)' }} />
               )}
-              {!r.available && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,.48)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ padding: '7px 12px', borderRadius: 999, background: '#fff',
-                    color: TI.neg, fontSize: 12.5, fontWeight: 800 }}>Unavailable</span>
-                </div>
-              )}
             </div>
             <div style={{ padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
@@ -199,9 +192,7 @@ export default function Explore({ onOpen, isDesktop = false }) {
                   <div style={{ fontSize: 16, fontWeight: 700, color: M.ink }}>{r.name}</div>
                   <div style={{ fontSize: 12.5, color: M.sub, marginTop: 2 }}>{r.room_type_name} - sleeps {r.capacity}</div>
                 </div>
-                {r.available ? <Stars rating={r.rating} reviews={r.reviews} /> : (
-                  <span style={{ fontSize: 12, fontWeight: 800, color: TI.neg }}>Unavailable</span>
-                )}
+                <Stars rating={r.rating} reviews={r.reviews} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
                 <div style={{ display: 'flex', gap: 8 }}>

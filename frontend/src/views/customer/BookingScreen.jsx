@@ -21,8 +21,18 @@ const diffDays = (start, end) => {
   if (!start || !end) return 0;
   return Math.round((new Date(`${end}T00:00:00`) - new Date(`${start}T00:00:00`)) / 86400000);
 };
+const monthLabel = (value) => new Date(`${value}T00:00:00`).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+const startOfMonth = (value) => {
+  const d = new Date(`${value}T00:00:00`);
+  d.setDate(1);
+  return dateOnly(d);
+};
 
-function DateSheet({ dates, setDates, today, onClose }) {
+function DateSheet({ dates, setDates, today, bookedDates = [], onClose }) {
+  const [activeField, setActiveField] = useState('in');
+  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(dates.in || today));
+  const booked = new Set(bookedDates);
+
   const updateDate = (key, value) => {
     setDates(d => {
       const next = { ...d, [key]: value };
@@ -35,6 +45,23 @@ function DateSheet({ dates, setDates, today, onClose }) {
       return next;
     });
   };
+  const shiftMonth = (amount) => {
+    const d = new Date(`${visibleMonth}T00:00:00`);
+    d.setMonth(d.getMonth() + amount);
+    setVisibleMonth(dateOnly(d));
+  };
+  const pickDate = (value) => {
+    if (value < today || booked.has(value)) return;
+    updateDate(activeField, value);
+    if (activeField === 'in') setActiveField('out');
+  };
+
+  const first = new Date(`${visibleMonth}T00:00:00`);
+  const cells = Array.from({ length: first.getDay() }, () => null);
+  const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push(dateOnly(new Date(first.getFullYear(), first.getMonth(), day)));
+  }
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 60,
@@ -49,24 +76,59 @@ function DateSheet({ dates, setDates, today, onClose }) {
             <Ico name="x" size={15} color={M.sub} />
           </button>
         </div>
-        <DateInput label="Check-in" value={dates.in} min={today} onChange={v => updateDate('in', v)} />
-        <DateInput label="Check-out" value={dates.out} min={dates.in ? addDays(dates.in, 1) : addDays(today, 1)} onChange={v => updateDate('out', v)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          {[
+            ['in', 'Check-in', dates.in],
+            ['out', 'Check-out', dates.out],
+          ].map(([key, label, value]) => (
+            <button key={key} type="button" onClick={() => setActiveField(key)}
+              style={{ minHeight: 52, borderRadius: 13, border: `1px solid ${activeField === key ? M.accent : M.border}`,
+                background: activeField === key ? TI.accentSoft : M.bg, textAlign: 'left', padding: '8px 11px',
+                cursor: 'pointer', fontFamily: M.ui }}>
+              <div style={{ fontSize: 10.5, color: M.sub, textTransform: 'uppercase', fontWeight: 800, letterSpacing: .4 }}>{label}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: M.ink, marginTop: 3 }}>{value || 'Select date'}</div>
+            </button>
+          ))}
+        </div>
+        <div style={{ border: `1px solid ${M.border}`, borderRadius: 16, padding: 12, background: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <button type="button" onClick={() => shiftMonth(-1)} style={calNavBtn}><Ico name="chevL" size={16} /></button>
+            <div style={{ fontSize: 14, fontWeight: 900, color: M.ink }}>{monthLabel(visibleMonth)}</div>
+            <button type="button" onClick={() => shiftMonth(1)} style={calNavBtn}><Ico name="chevR" size={16} /></button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: M.sub }}>{day}</div>
+            ))}
+            {cells.map((value, index) => {
+              const selected = value && (value === dates.in || value === dates.out);
+              const isPast = value && value < today;
+              const isBooked = value && booked.has(value);
+              return value ? (
+                <button key={value} type="button" onClick={() => pickDate(value)}
+                  disabled={isPast || isBooked}
+                  title={isBooked ? 'Confirmed booking' : undefined}
+                  style={{ height: 36, borderRadius: 10,
+                    border: selected ? `2px solid ${isBooked ? TI.neg : M.accent}` : `1px solid ${isBooked ? '#fecaca' : 'transparent'}`,
+                    background: isBooked ? '#fee2e2' : selected ? M.accent : isPast ? '#f8fafc' : M.bg,
+                    color: isBooked ? TI.neg : selected ? '#fff' : isPast ? M.faint : M.ink,
+                    cursor: isPast || isBooked ? 'not-allowed' : 'pointer',
+                    fontFamily: M.ui, fontSize: 13, fontWeight: isBooked || selected ? 900 : 700 }}>
+                  {new Date(`${value}T00:00:00`).getDate()}
+                </button>
+              ) : <div key={`blank-${index}`} />;
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 12, fontSize: 12, color: M.sub }}>
+            <span style={{ width: 14, height: 14, borderRadius: 5, background: '#fee2e2', border: '1px solid #fecaca' }} />
+            Confirmed booking
+          </div>
+        </div>
         <button onClick={onClose} style={{ width: '100%', marginTop: 16, height: 42,
           border: 'none', borderRadius: 999, background: M.accent, color: '#fff',
           fontFamily: M.ui, fontSize: 14, fontWeight: 800, cursor: 'pointer' }}>Apply</button>
       </div>
     </div>
-  );
-}
-
-function DateInput({ label, value, min, onChange }) {
-  return (
-    <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: M.ink, marginBottom: 6 }}>{label}</span>
-      <input type="date" value={value} min={min} onChange={e => onChange(e.target.value)}
-        style={{ width: '100%', height: 40, border: `1px solid ${M.border}`, borderRadius: 10,
-          background: M.bg, padding: '0 11px', fontFamily: M.ui, fontSize: 13, boxSizing: 'border-box' }} />
-    </label>
   );
 }
 
@@ -243,7 +305,7 @@ export default function BookingScreen({ id, dates: initialDates, onBack, onConfi
             ) : hasInvalidRange ? (
               <>Check-out must be after check-in. Please choose valid dates.</>
             ) : unavailable ? (
-              <>This room is already booked for the selected dates. Please choose a different room or dates.</>
+              <>These selected dates are already booked. Please choose different dates for this room.</>
             ) : pendingDuplicate ? (
               <>You already have a <b style={{ color: M.ink }}>Pending</b> reservation for this room. You can still book a different room.</>
             ) : (
@@ -259,14 +321,18 @@ export default function BookingScreen({ id, dates: initialDates, onBack, onConfi
         borderTop: `1px solid ${M.border}`, zIndex: 30, maxWidth: isDesktop ? 980 : 'none',
         margin: isDesktop ? '0 auto' : 0 }}>
         <Btn size="lg" full onClick={confirm} disabled={saving || pendingDuplicate || unavailable || hasInvalidPastDate || hasInvalidRange}>
-          {hasInvalidPastDate ? 'Choose a future date' : hasInvalidRange ? 'Fix dates' : unavailable ? 'Unavailable' : pendingDuplicate ? 'Already pending' : saving ? 'Sending...' : 'Confirm reservation'}
+          {hasInvalidPastDate ? 'Choose a future date' : hasInvalidRange ? 'Fix dates' : unavailable ? 'Selected dates booked' : pendingDuplicate ? 'Already pending' : saving ? 'Sending...' : 'Confirm reservation'}
         </Btn>
       </div>
 
-      {dateOpen && <DateSheet dates={dates} setDates={setDates} today={today} onClose={() => setDateOpen(false)} />}
+      {dateOpen && <DateSheet dates={dates} setDates={setDates} today={today}
+        bookedDates={room.confirmed_booked_dates || []} onClose={() => setDateOpen(false)} />}
     </div>
   );
 }
 
 const stepBtn = { width: 34, height: 34, borderRadius: 999, border: `1px solid ${M.border}`,
   background: M.surface, cursor: 'pointer', fontSize: 18, color: M.ink };
+const calNavBtn = { width: 32, height: 32, borderRadius: 999, border: `1px solid ${M.border}`,
+  background: M.surface, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  color: M.ink };

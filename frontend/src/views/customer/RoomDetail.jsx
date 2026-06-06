@@ -76,8 +76,13 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 10, color: TI.pos, fontSize: 13, fontWeight: 600 }}>
           <span style={{ width: 7, height: 7, borderRadius: 4, background: room.available ? TI.pos : TI.neg }} />
-          <span style={{ color: room.available ? TI.pos : TI.neg }}>{room.available ? 'Available' : 'Unavailable'}</span>
+          <span style={{ color: room.available ? TI.pos : TI.neg }}>{room.available ? 'Available for selected dates' : 'Selected dates booked'}</span>
         </div>
+        {!room.available && (
+          <div style={{ fontSize: 12.5, color: M.sub, marginTop: 6 }}>
+            You can still reserve this room by choosing different dates.
+          </div>
+        )}
         <p style={{ fontSize: 14, color: M.ink, lineHeight: 1.55, marginTop: 16 }}>{room.description}</p>
         <div style={{ fontSize: 14, fontWeight: 700, color: M.ink, margin: '8px 0 12px' }}>What this room offers</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -135,10 +140,10 @@ export default function RoomDetail({ id, dates, onBack, onReserve, isDesktop = f
           <div style={{ fontSize: 20, fontWeight: 800, color: M.ink }}>{peso(room.price)}</div>
           <div style={{ fontSize: 11.5, color: M.sub }}>{selectedNights} night{selectedNights !== 1 ? 's' : ''} · {formatRange(dates?.in, dates?.out)}</div>
         </div>
-        <Btn size="lg" full variant={room.available ? 'primary' : 'outline'}
-          onClick={() => room.available && onReserve(id, dates)} disabled={!room.available}
-          style={{ flex: 1, ...(room.available ? {} : { background: '#f1f5f9', color: M.sub, borderColor: M.border }) }}>
-          {room.available ? 'Reserve' : 'Unavailable'}
+        <Btn size="lg" full
+          onClick={() => onReserve(id, dates)}
+          style={{ flex: 1 }}>
+          Reserve
         </Btn>
       </div>
     </div>

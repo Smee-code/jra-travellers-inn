@@ -23,6 +23,7 @@ from .serializers import (
     RoomTypeSerializer, RoomSerializer,
     BookingSerializer, BookingCreateSerializer,
     AuditLogSerializer, ReportRecordSerializer, PushSubscriptionSerializer,
+    has_blocking_booking,
 )
 from .forecasting import (
     actual_vs_predicted_monthly,
@@ -267,6 +268,11 @@ class BookingViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin()])
     def confirm(self, request, pk=None):
         booking = self.get_object()
+        if has_blocking_booking(booking.room, booking.check_in, booking.check_out, exclude_booking=booking):
+            return Response(
+                {'detail': 'This room is unavailable for the selected dates.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         booking.status = 'Confirmed'
         booking.save()
         AuditLog.objects.create(
