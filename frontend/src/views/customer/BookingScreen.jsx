@@ -102,6 +102,7 @@ function DateSheet({ dates, setDates, today, bookedDates = [], onClose }) {
             ))}
             {cells.map((value, index) => {
               const selected = value && (value === dates.in || value === dates.out);
+              const inSelectedRange = value && dates.in && dates.out && value > dates.in && value < dates.out;
               const isPast = value && value < today;
               const isBooked = value && booked.has(value);
               return value ? (
@@ -110,10 +111,10 @@ function DateSheet({ dates, setDates, today, bookedDates = [], onClose }) {
                   title={isBooked ? 'Confirmed booking' : undefined}
                   style={{ height: 36, borderRadius: 10,
                     border: selected ? `2px solid ${isBooked ? TI.neg : M.accent}` : `1px solid ${isBooked ? '#fecaca' : 'transparent'}`,
-                    background: isBooked ? '#fee2e2' : selected ? M.accent : isPast ? '#f8fafc' : M.bg,
-                    color: isBooked ? TI.neg : selected ? '#fff' : isPast ? M.faint : M.ink,
+                    background: isBooked ? '#fee2e2' : selected ? M.accent : inSelectedRange ? TI.accentSoft : isPast ? '#f8fafc' : M.bg,
+                    color: isBooked ? TI.neg : selected ? '#fff' : inSelectedRange ? M.accent : isPast ? M.faint : M.ink,
                     cursor: isPast || isBooked ? 'not-allowed' : 'pointer',
-                    fontFamily: M.ui, fontSize: 13, fontWeight: isBooked || selected ? 900 : 700 }}>
+                    fontFamily: M.ui, fontSize: 13, fontWeight: isBooked || selected || inSelectedRange ? 900 : 700 }}>
                   {new Date(`${value}T00:00:00`).getDate()}
                 </button>
               ) : <div key={`blank-${index}`} />;
