@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../api/client';
 import Pill from '../../components/Pill';
 import Ico from '../../components/Ico';
@@ -120,16 +121,24 @@ export default function Trips({ onBookAgain, isDesktop = false }) {
         </section>
       </div>
       {detail && (
-        <BookingDetail booking={detail} innContact={innContact} onClose={() => setDetail(null)}
-          onBookAgain={(roomId) => { setDetail(null); onBookAgain?.(roomId); }}
-          onReview={(b) => setReviewTarget(b)} isDesktop={isDesktop} />
+        <ModalPortal>
+          <BookingDetail booking={detail} innContact={innContact} onClose={() => setDetail(null)}
+            onBookAgain={(roomId) => { setDetail(null); onBookAgain?.(roomId); }}
+            onReview={(b) => setReviewTarget(b)} isDesktop={isDesktop} />
+        </ModalPortal>
       )}
       {reviewTarget && (
-        <ReviewModal booking={reviewTarget} busy={busy === `review-${reviewTarget.id}`}
-          onClose={() => setReviewTarget(null)} onSubmit={submitReview} isDesktop={isDesktop} />
+        <ModalPortal>
+          <ReviewModal booking={reviewTarget} busy={busy === `review-${reviewTarget.id}`}
+            onClose={() => setReviewTarget(null)} onSubmit={submitReview} isDesktop={isDesktop} />
+        </ModalPortal>
       )}
     </div>
   );
+}
+
+function ModalPortal({ children }) {
+  return createPortal(children, document.body);
 }
 
 function BookingDetail({ booking, innContact, onClose, onBookAgain, onReview, isDesktop }) {
@@ -141,11 +150,12 @@ function BookingDetail({ booking, innContact, onClose, onBookAgain, onReview, is
   const statusColor = booking.status === 'Cancelled' ? TI.neg : booking.status === 'Pending' ? TI.warn : booking.status === 'Confirmed' ? TI.pos : M.sub;
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(15,23,42,.38)',
-      display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center', padding: isDesktop ? 18 : 0 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(15,23,42,.38)',
+      display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center', padding: isDesktop ? 18 : 0,
+      minHeight: '100dvh' }}>
       <div onClick={e => e.stopPropagation()} className="ti-fade" style={{ width: isDesktop ? 520 : '100%', maxWidth: '100%',
         background: M.surface, borderRadius: isDesktop ? 20 : '22px 22px 0 0', boxShadow: TI.shadowLg,
-        overflow: 'hidden' }}>
+        overflow: 'hidden', maxHeight: isDesktop ? 'calc(100dvh - 36px)' : '88dvh', overflowY: 'auto' }}>
         <div style={{ padding: '18px 20px', borderBottom: `1px solid ${M.border}`, display: 'flex',
           justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
           <div>
@@ -230,10 +240,12 @@ function ReviewModal({ booking, busy, onClose, onSubmit, isDesktop }) {
   const [comment, setComment] = useState('');
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 95, background: 'rgba(15,23,42,.42)',
-      display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center', padding: isDesktop ? 18 : 0 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 3100, background: 'rgba(15,23,42,.42)',
+      display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center', padding: isDesktop ? 18 : 0,
+      minHeight: '100dvh' }}>
       <div onClick={e => e.stopPropagation()} className="ti-fade" style={{ width: isDesktop ? 460 : '100%', maxWidth: '100%',
-        background: M.surface, borderRadius: isDesktop ? 20 : '22px 22px 0 0', boxShadow: TI.shadowLg, padding: 20 }}>
+        background: M.surface, borderRadius: isDesktop ? 20 : '22px 22px 0 0', boxShadow: TI.shadowLg, padding: 20,
+        maxHeight: isDesktop ? 'calc(100dvh - 36px)' : '88dvh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 11, fontFamily: M.mono, letterSpacing: 1.2, color: M.faint, textTransform: 'uppercase' }}>Room review</div>
